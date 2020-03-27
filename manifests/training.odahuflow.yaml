@@ -1,0 +1,24 @@
+kind: ModelTraining
+id: reuters-classifier
+spec:
+  model:
+    name: reuters-classifier
+    version: 1.0.2
+  toolchain: mlflow  # MLFlow training toolchain integration
+  entrypoint: main
+  workDir: ./
+  reference: 1.0.2
+  hyperParameters:
+    maxwords: "999"
+  data:
+    - connName: models-output
+      localPath: mlflow/tensorflow/reuters_classifier/data/
+      remotePath: /reuters/
+  resources:
+    limits:
+      cpu: 3
+      memory: 2Gi
+    requests:
+      cpu: 3
+      memory: 2Gi
+  vcsName: odahu-pipeline-examples
