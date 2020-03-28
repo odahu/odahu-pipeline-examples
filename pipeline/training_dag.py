@@ -1,11 +1,40 @@
+"""
+This is example of inference pipeline
+
+1. Extract data
+    1.1 Extract initial data from base dataset
+    1.2 Extract feedback data about previous version model predictions
+
+2. Prepare data:
+    2.1 Transform data to proper unified format
+        2.1.1  Transform data from base dataset
+        2.1.2  Transform data from feedback loop
+    2.2 Validate data
+    2.3 Fit tokenizer (and save it as pipeline artifact)
+    2.4 Split on train, validation, test sets (upload test set as pipeline artifact)
+3. Train (using ODAHU)
+4. Evaluate performance using test dataset
+5. Package (using ODAHU)
+6. Deploy (using ODAHU)
+"""
+
 from datetime import datetime
 
 from airflow import DAG
+from airflow.operators.python_operator import PythonOperator
 from odahuflow.airflow_plugin.deployment import DeploymentOperator, DeploymentSensor
-from odahuflow.airflow_plugin.model import ModelPredictRequestOperator, ModelInfoRequestOperator
 from odahuflow.airflow_plugin.packaging import PackagingOperator, PackagingSensor
 from odahuflow.airflow_plugin.resources import resource
 from odahuflow.airflow_plugin.training import TrainingOperator, TrainingSensor
+
+from stages import prepare_base_dataset, prepare_odahu_training
+
+api_connection_id = "odahuflow_api"
+model_connection_id = "odahuflow_model"
+training_id, training = resource('manifests/training.odahuflow.yaml')
+packaging_id, packaging = resource('manifests/packaging.odahuflow.yaml')
+deployment_id, deployment = resource('manifests/deployment.odahuflow.yaml')
+
 
 default_args = {
     'owner': 'airflow',
@@ -16,31 +45,28 @@ default_args = {
     'end_date': datetime(2099, 12, 31)
 }
 
-api_connection_id = "odahuflow_api"
-model_connection_id = "odahuflow_model"
-
-training_id, training = resource('manifests/training.odahuflow.yaml')
-
-packaging_id, packaging = resource('manifests/packaging.odahuflow.yaml')
-
-deployment_id, deployment = resource('manifests/deployment.odahuflow.yaml')
-
-model_example_request = {
-    "columns": [
-        "text"
-    ],
-    "data": [[
-        "The Bank of England said ita had provided the\n    money market with a further 437 mln stg assistance in the\n    afternoon session. This brings the Bank's total help so far\n    today to 461 mln stg and compares with its revised shortage\n    forecast of 450 mln stg.\n        The central bank made purchases of bank bills outright\n    comprising 120 mln stg in band one at 10-7\/8 pct and 315 mln\n    stg in band two at 10-13\/16 pct.\n        In addition, it also bought two mln stg of treasury bills\n    in band two at 10-13\/16 pct.\n    "
-    ]]
-}
-
 dag = DAG(
-    'airflow-reuters',
+    'reuters-training',
     default_args=default_args,
     schedule_interval=None
 )
 
 with dag:
+
+    prepare_base_dataset_task = PythonOperator(
+        python_callable=prepare_base_dataset,
+        task_id='prepare_base_dataset',
+        provide_context=True,
+        default_args=default_args
+    )
+
+    prepare_odahu_training_task = PythonOperator(
+        python_callable=prepare_odahu_training,
+        task_id='prepare_input_training',
+        provide_context=True,
+        default_args=default_args
+    )
+
     train = TrainingOperator(
         task_id="training",
         api_connection_id=api_connection_id,
@@ -85,23 +111,10 @@ with dag:
         default_args=default_args
     )
 
-    model_predict_request = ModelPredictRequestOperator(
-        task_id="model_predict_request",
-        model_deployment_name=deployment_id,
-        api_connection_id=api_connection_id,
-        model_connection_id=model_connection_id,
-        request_body=model_example_request,
-        default_args=default_args
-    )
+    # PIPELINE
 
-    model_info_request = ModelInfoRequestOperator(
-        task_id='model_info_request',
-        model_deployment_name=deployment_id,
-        api_connection_id=api_connection_id,
-        model_connection_id=model_connection_id,
-        default_args=default_args
-    )
+    prepare_base_dataset_task >> prepare_odahu_training_task >> train >> wait_for_train
 
-    train >> wait_for_train >> pack >> wait_for_pack >> dep >> wait_for_dep
-    wait_for_dep >> model_info_request
-    wait_for_dep >> model_predict_request
+    wait_for_train >> pack >> wait_for_pack
+
+    wait_for_pack >> dep >> wait_for_dep

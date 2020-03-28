@@ -6,14 +6,14 @@ spec:
     version: 1.0.2
   toolchain: mlflow  # MLFlow training toolchain integration
   entrypoint: main
-  workDir: ./
-  reference: 1.0.2
+  workDir: pipeline/stages/train
+  reference: feat/advanced_pipeline
   hyperParameters:
     maxwords: "999"
   data:
     - connName: models-output
-      localPath: mlflow/tensorflow/reuters_classifier/data/
-      remotePath: /reuters/
+      localPath: pipeline/stages/train/
+      remotePath: /input/reuters-training/
   resources:
     limits:
       cpu: 3

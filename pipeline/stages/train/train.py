@@ -2,16 +2,20 @@
 from __future__ import print_function
 
 import argparse
+import pickle
+import os
+from typing import List
 
 import mlflow.keras
 import mlflow.pyfunc
+import pandas as pd
 from keras import Sequential
 from keras.layers import Dense, Activation, Dropout
+from keras_preprocessing.text import Tokenizer
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import MultiLabelBinarizer
 
-
-from src import parser
-from src.utils import fit_tokenizer, fit_topics_encoder, ModelWrapper, save_samples
+from src.utils import ModelWrapper, save_samples
 
 # Constants
 REUTERS_DATA_PATH = 'data'
@@ -33,26 +37,31 @@ units = int(args.units or 512)
 
 print(f'Script is launched with params: max_words={max_words}, units={units}')
 
-# Streamer of reuters dataset
-streamer = parser.ReutersStreamer(REUTERS_DATA_PATH)
+print('listdir')
+print(list(os.listdir()))
 
-# Fitting transformers
-tokenizer = fit_tokenizer(streamer, max_words)
-topics_encoder = fit_topics_encoder(streamer)
+with open('topics.pickle', 'rb') as f:
+    topics: List[str] = pickle.load(f)
+with open('docs_df.pickle', 'rb') as f:
+    docs_df: pd.DataFrame = pickle.load(f)
+
+# Tokenize all reuters dataset
+tokenizer = Tokenizer(num_words=max_words)
+tokenizer.fit_on_texts(docs_df['text'].to_list())
+
+topics_encoder = MultiLabelBinarizer()
+topics_encoder.fit(([t] for t in topics))
+
 
 # Prepare features (encode and split)
-X = tokenizer.texts_to_matrix(
-    (text for text, _ in streamer.stream_reuters_documents_with_topics())
-)
-Y = topics_encoder.transform(
-    (topics for _, topics in streamer.stream_reuters_documents_with_topics())
-)
+X = tokenizer.texts_to_matrix(docs_df['text'].to_list())
+Y = topics_encoder.transform(docs_df['topics'].to_list())
 X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2)
 
 
 # Build model
 print('Building model...')
-num_classes = len(streamer.topics)
+num_classes = len(topics)
 model = Sequential()
 model.add(Dense(units, input_shape=(max_words,)))
 model.add(Activation('relu'))
@@ -98,6 +107,6 @@ with mlflow.start_run():
     print('Test score:', score[0])
     print('Test accuracy:', score[1])
 
-    artifact_paths = save_samples(streamer.topics)
+    artifact_paths = save_samples(topics)
     for fp in artifact_paths:
         mlflow.log_artifact(fp, 'model')

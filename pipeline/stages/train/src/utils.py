@@ -9,26 +9,6 @@ import tensorflow as tf
 from mlflow.pyfunc import PythonModelContext
 from sklearn.preprocessing import MultiLabelBinarizer
 
-from src import parser
-
-def fit_tokenizer(streamer: parser.ReutersStreamer, max_words) -> Tokenizer:
-    # Tokenize all reuters dataset
-
-    tokenizer = Tokenizer(num_words=max_words)
-    tokenizer.fit_on_texts(
-        (text for text, _ in streamer.stream_reuters_documents_with_topics())
-    )
-    return tokenizer
-
-
-def fit_topics_encoder(streamer: parser.ReutersStreamer) -> MultiLabelBinarizer:
-
-    topics_encoder = MultiLabelBinarizer()
-    topics_encoder.fit(
-        ([t] for t in streamer.topics)
-    )
-    return topics_encoder
-
 
 def float_to_percentage(value):
     n_value = round(value, 4) * 100
