@@ -15,7 +15,7 @@ from utils.workspace import inside_workspace
 logger = logging.getLogger(__name__)
 
 
-@inside_workspace
+@inside_workspace()
 def prepare_base_dataset(ds, ts, dag: DAG, **kwargs):
     """
     Extract base dataset

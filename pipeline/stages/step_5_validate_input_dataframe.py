@@ -8,7 +8,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-@inside_workspace
+@inside_workspace()
 def validate_input_dataframe(ds, ts, dag: DAG, **kwargs):
     """
     Validate input dataframe

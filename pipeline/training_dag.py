@@ -1,21 +1,5 @@
 """
-This is example of inference pipeline
-
-1. Extract data
-    1.1 Extract initial data from base dataset
-    1.2 Extract feedback data about previous version model predictions
-
-2. Prepare data:
-    2.1 Transform data to proper unified format
-        2.1.1  Transform data from base dataset
-        2.1.2  Transform data from feedback loop
-    2.2 Validate data
-    2.3 Fit tokenizer (and save it as pipeline artifact)
-    2.4 Split on train, validation, test sets (upload test set as pipeline artifact)
-3. Train (using ODAHU)
-4. Evaluate performance using test dataset
-5. Package (using ODAHU)
-6. Deploy (using ODAHU)
+This is example of training (and re-training) dag
 """
 
 from datetime import datetime

@@ -1,15 +1,17 @@
 """
-This is example of inference pipeline
+This is example of inference dag
 
 1. Make inference using ODAHU deployed model
-2. Send feedback about prediction using ODAHU API
+2. Interpret data
+3. Compare with real value
+4. Send feedback about prediction using ODAHU API
 """
 from datetime import datetime
 
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
 
-from inference_stages import extract_realtime_data, make_inference
+from inference_stages import extract_realtime_data, make_inference, interpret_data, feedback
 from __version__ import VERSIONED_PROJECT
 
 default_args = {
@@ -43,5 +45,19 @@ with dag:
         default_args=default_args
     )
 
-    extract_data_task >> make_inference_task
+    interpret_data_task = PythonOperator(
+        python_callable=interpret_data,
+        task_id='interpret_data',
+        provide_context=True,
+        default_args=default_args
+    )
+
+    feedback_task = PythonOperator(
+        python_callable=feedback,
+        task_id='feedback',
+        provide_context=True,
+        default_args=default_args
+    )
+
+    extract_data_task >> make_inference_task >> interpret_data_task >> feedback_task
 

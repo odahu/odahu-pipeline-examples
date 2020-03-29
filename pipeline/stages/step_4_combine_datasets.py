@@ -8,7 +8,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-@inside_workspace
+@inside_workspace()
 def combine_datasets(ds, ts, dag: DAG, **kwargs):
     """
     Combine feedback and base data sets

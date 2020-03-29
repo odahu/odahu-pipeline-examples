@@ -11,7 +11,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-@inside_workspace
+@inside_workspace()
 def prepare_odahu_training(ds, ts, dag: DAG, **kwargs):
     """
     Extract data from external storage (e.g. Company Data Lake) and upload it to bucket

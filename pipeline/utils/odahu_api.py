@@ -53,13 +53,17 @@ def get_token() -> str:
             extra = json.load(f)
     else:
         conn = BaseHook.get_connection(api_connection_id)
-        extra = conn.extra
+        extra = json.loads(conn.extra)
     token = _get_token(extra)
     return token
 
 
 def get_model_uri() -> str:
     return f'https://{const.API_HOST}/model/{VERSIONED_PROJECT}/api/model/invoke'
+
+
+def get_feedback_uri() -> str:
+    return f'https://{const.API_HOST}/api/v1/feedback'
 
 
 def predict(json_: Dict):
@@ -69,7 +73,16 @@ def predict(json_: Dict):
         'accept': 'application/json'
     })
     res.raise_for_status()
-    return res.json()
+    return res.json(), res.headers
 
+
+def feedback(headers: Dict, data: Dict):
+    res = requests.post(get_feedback_uri(), json=data, headers={
+        'Authorization': f'Bearer {get_token()}',
+        'Content-Type': 'application/json',
+        **headers
+    })
+    res.raise_for_status()
+    return res.json(), res.headers
 
 

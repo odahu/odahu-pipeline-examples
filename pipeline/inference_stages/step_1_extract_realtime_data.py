@@ -16,7 +16,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-@inside_workspace
+@inside_workspace()
 def extract_realtime_data(ds, ts, dag: DAG, **kwargs):
     """
     Extract realtime data for inference

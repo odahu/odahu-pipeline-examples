@@ -14,6 +14,10 @@ TRAINING_INPUT_DIR = 'input/reuters-training'
 # Inference
 REALDATA_PICKLE = 'df.pickle'
 INFERENCE_RESULT = 'result.json'
+INFERENCE_HEADERS = 'headers.json'
 REAL_RESULT = 'real_result.json'
+
+# feedback
+PREPARED_FEEDBACK = 'feedback.json'
 
 

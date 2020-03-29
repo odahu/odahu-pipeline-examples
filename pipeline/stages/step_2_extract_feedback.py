@@ -7,7 +7,7 @@ from utils.workspace import inside_workspace
 logger = logging.getLogger(__name__)
 
 
-@inside_workspace
+@inside_workspace()
 def extract_feedback(ds, ts, dag: DAG, **kwargs):
     """
     Extract feedback data to workspace

@@ -14,7 +14,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-@inside_workspace
+@inside_workspace()
 def make_inference(ds, ts, dag: DAG, **kwargs):
     """
     Make inference for realtime data
@@ -27,11 +27,13 @@ def make_inference(ds, ts, dag: DAG, **kwargs):
 
     sample: pd.DataFrame = docs_df.sample(10)
     request_body = sample.drop(const.TOPICS_COL, 1)
-    request_result = odahu_api.predict(request_body.to_json(orient='split'))
+    request_result, headers = odahu_api.predict(request_body.to_json(orient='split'))
     with open(const.INFERENCE_RESULT, 'wt') as f:
         json.dump(request_result, f)
     with open(const.REAL_RESULT, 'wt') as f:
-        json.dump(sample.to_json(orient='split'), f)
+        f.write(sample.to_json(orient='split'))
+    with open(const.INFERENCE_HEADERS, 'wt') as f:
+        json.dump(dict(headers), f)
 
 
 if __name__ == '__main__':

@@ -8,7 +8,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-@inside_workspace
+@inside_workspace()
 def prepare_feedback(ds, ts, dag: DAG, **kwargs):
     """
     Prepare feedback as DataFrame with unified schema

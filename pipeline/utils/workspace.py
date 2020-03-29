@@ -38,7 +38,7 @@ def workspace_folder():
 
 
 @contextlib.contextmanager
-def workspace(bucket_ws_path):
+def workspace(bucket_ws_path, sync=True):
     """
     Used to sync data between tasks on different workers via bucket
 
@@ -50,6 +50,7 @@ def workspace(bucket_ws_path):
         1. Upload -r all data from temp directory to bucket
         2. Unset created temp directory as working directory
     :param bucket_ws_path: remote workspace (in bucket)
+    :param sync: sync with remote
     :return:
     """
     with workspace_folder() as folder:
@@ -57,36 +58,46 @@ def workspace(bucket_ws_path):
         logger.info(f'Remote folder in storage for sync: {bucket_ws_path}')
         with chdir(folder):
             try:
-                # we use subprocess instead of Python SDK because the latter is not has simple api to recursively
-                # fetch entire directory
-                logger.info(f'Bucket -> Local workspace sync started')
-                result = subprocess.run(['gsutil', 'cp', '-r', f'{bucket_ws_path}/*', './'], stdout=PIPE, stderr=PIPE)
-                logger.info(f'return code: {result.returncode}, stderr: {result.stderr}, stdout: {result.stdout}')
-                if result.returncode != 0:
-                    logger.info(f'return code: {result.returncode}, stderr: {result.stderr}')
-                logger.info(f'Bucket -> Local workspace synced')
+                if sync:
+                    # we use subprocess instead of Python SDK because the latter is not has simple api to recursively
+                    # fetch entire directory
+                    logger.info(f'Bucket -> Local workspace sync started')
+                    result = subprocess.run(['gsutil', 'cp', '-r', f'{bucket_ws_path}/*', './'], stdout=PIPE, stderr=PIPE)
+                    logger.info(f'return code: {result.returncode}, stderr: {result.stderr}, stdout: {result.stdout}')
+                    if result.returncode != 0:
+                        logger.info(f'return code: {result.returncode}, stderr: {result.stderr}')
+                    logger.info(f'Bucket -> Local workspace synced')
+                else:
+                    logger.warning('Sync was disabled')
                 yield
-                logger.info(f'Local workspace -> Bucket sync started')
-                result = subprocess.run(['gsutil', 'cp', '-r', './*', f'{bucket_ws_path}/'], stdout=PIPE, stderr=PIPE)
-                if result.returncode != 0:
-                    logger.info(f'return code: {result.returncode}, stderr: {result.stderr}')
-                logger.info(f'Local workspace -> Bucket synced')
+                if sync:
+                    logger.info(f'Local workspace -> Bucket sync started')
+                    result = subprocess.run(['gsutil', 'cp', '-r', './*', f'{bucket_ws_path}/'], stdout=PIPE, stderr=PIPE)
+                    if result.returncode != 0:
+                        logger.info(f'return code: {result.returncode}, stderr: {result.stderr}')
+                    logger.info(f'Local workspace -> Bucket synced')
+                else:
+                    logger.warning('Sync was disabled')
             finally:
                 pass
         logger.info(f'Working directory at {folder} will be removed')
 
 
-def inside_workspace(func):
+def inside_workspace(sync=True):
     """
     Decorated function will be executed in workspace temp directory that is synced with remote bucket
     All new data automatically uploaded to bucket after function is finished
-    :param func:
+    :param sync: If true content of workspace will be synced with bucket. Default: True
     :return:
     """
 
-    @wraps(func)
-    def wrapper(ds, ts, dag: DAG, **kwargs):
-        with workspace(get_workspace_path(ts, dag.dag_id)):
-            return func(ds, ts, dag, **kwargs)
+    def inner(func):
 
-    return wrapper
+        @wraps(func)
+        def wrapper(ds, ts, dag: DAG, **kwargs):
+            with workspace(get_workspace_path(ts, dag.dag_id), sync=sync):
+                return func(ds, ts, dag, **kwargs)
+
+        return wrapper
+
+    return inner
