@@ -26,15 +26,31 @@ from odahuflow.airflow_plugin.deployment import DeploymentOperator, DeploymentSe
 from odahuflow.airflow_plugin.packaging import PackagingOperator, PackagingSensor
 from odahuflow.airflow_plugin.resources import resource
 from odahuflow.airflow_plugin.training import TrainingOperator, TrainingSensor
+from odahuflow.sdk.models import ModelTraining, ModelPackaging, ModelDeployment
 
-from stages import prepare_base_dataset, prepare_odahu_training
+from stages import prepare_base_dataset, prepare_odahu_training, extract_feedback, \
+    prepare_feedback, combine_datasets, validate_input_dataframe
+from __version__ import VERSIONED_PROJECT, VERSION, PROJECT
 
 api_connection_id = "odahuflow_api"
 model_connection_id = "odahuflow_model"
-training_id, training = resource('manifests/training.odahuflow.yaml')
-packaging_id, packaging = resource('manifests/packaging.odahuflow.yaml')
-deployment_id, deployment = resource('manifests/deployment.odahuflow.yaml')
 
+# Load ODAHU API manifests and change versions according pipeline version
+
+_, training = resource('manifests/training.odahuflow.yaml')   # type: str, ModelTraining
+_, packaging = resource('manifests/packaging.odahuflow.yaml')  # type: str, ModelPackaging
+_, deployment = resource('manifests/deployment.odahuflow.yaml')  # type: str, ModelDeployment
+
+training_id, packaging_id, deployment_id = VERSIONED_PROJECT, VERSIONED_PROJECT, VERSIONED_PROJECT
+
+training.id = VERSIONED_PROJECT
+packaging.id = VERSIONED_PROJECT
+deployment.id = VERSIONED_PROJECT
+
+training.spec.model.name = PROJECT
+training.spec.model.version = VERSION
+
+# Dag section
 
 default_args = {
     'owner': 'airflow',
@@ -46,7 +62,7 @@ default_args = {
 }
 
 dag = DAG(
-    'reuters-training',
+    f'{VERSIONED_PROJECT}-training',
     default_args=default_args,
     schedule_interval=None
 )
@@ -60,9 +76,37 @@ with dag:
         default_args=default_args
     )
 
+    extract_feedback_task = PythonOperator(
+        python_callable=extract_feedback,
+        task_id='extract_feedback',
+        provide_context=True,
+        default_args=default_args
+    )
+
+    prepare_feedback_task = PythonOperator(
+        python_callable=prepare_feedback,
+        task_id='prepare_feedback',
+        provide_context=True,
+        default_args=default_args
+    )
+
+    combine_datasets_task = PythonOperator(
+        python_callable=combine_datasets,
+        task_id='combine_datasets',
+        provide_context=True,
+        default_args=default_args
+    )
+
+    validate_input_dataframe_task = PythonOperator(
+        python_callable=validate_input_dataframe,
+        task_id='validate_input_dataframe',
+        provide_context=True,
+        default_args=default_args
+    )
+
     prepare_odahu_training_task = PythonOperator(
         python_callable=prepare_odahu_training,
-        task_id='prepare_input_training',
+        task_id='prepare_odahu_training_task',
         provide_context=True,
         default_args=default_args
     )
@@ -113,7 +157,13 @@ with dag:
 
     # PIPELINE
 
-    prepare_base_dataset_task >> prepare_odahu_training_task >> train >> wait_for_train
+    extract_feedback_task >> prepare_feedback_task >> combine_datasets_task
+
+    prepare_base_dataset_task >> combine_datasets_task
+
+    combine_datasets_task >> validate_input_dataframe_task
+
+    validate_input_dataframe_task >> prepare_odahu_training_task >> train >> wait_for_train
 
     wait_for_train >> pack >> wait_for_pack
 

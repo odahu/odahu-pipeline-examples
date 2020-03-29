@@ -9,7 +9,8 @@ from datetime import datetime
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
 
-from stages import prepare_base_dataset, prepare_odahu_training
+from inference_stages import extract_realtime_data, make_inference
+from __version__ import VERSIONED_PROJECT
 
 default_args = {
     'owner': 'airflow',
@@ -21,26 +22,26 @@ default_args = {
 }
 
 dag = DAG(
-    'reuters-inference',
+    f'{VERSIONED_PROJECT}-inference',
     default_args=default_args,
     schedule_interval=None
 )
 
 with dag:
 
-    extract_data_op = PythonOperator(
-        python_callable=prepare_base_dataset,
-        task_id='prepare_base_dataset',
+    extract_data_task = PythonOperator(
+        python_callable=extract_realtime_data,
+        task_id='extract_realtime_data',
         provide_context=True,
         default_args=default_args
     )
 
-    prepare_training = PythonOperator(
-        python_callable=prepare_odahu_training,
-        task_id='prepare_input_training',
+    make_inference_task = PythonOperator(
+        python_callable=make_inference,
+        task_id='make_inference',
         provide_context=True,
         default_args=default_args
     )
 
-    extract_data_op >> prepare_training
+    extract_data_task >> make_inference_task
 

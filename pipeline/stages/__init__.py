@@ -1,2 +1,6 @@
 from stages.step_1_prepare_base_dataset import prepare_base_dataset
-from stages.step_5_prepare_odahu_training import prepare_odahu_training
+from stages.step_2_extract_feedback import extract_feedback
+from stages.step_3_prepare_feedback import prepare_feedback
+from stages.step_4_combine_datasets import combine_datasets
+from stages.step_5_validate_input_dataframe import validate_input_dataframe
+from stages.step_6_prepare_odahu_training import prepare_odahu_training

@@ -7,7 +7,7 @@ spec:
   toolchain: mlflow  # MLFlow training toolchain integration
   entrypoint: main
   workDir: pipeline/stages/train
-  reference: feat/advanced_pipeline
+  reference: 1.0.3
   hyperParameters:
     maxwords: "999"
   data:

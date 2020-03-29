@@ -4,13 +4,14 @@ from airflow import DAG
 
 from utils.workspace import inside_workspace
 
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
 @inside_workspace
-def extract_feedback(ds, ts, dag: DAG, **kwargs):
+def validate_input_dataframe(ds, ts, dag: DAG, **kwargs):
     """
-    Extract feedback data to workspace
+    Validate input dataframe
     :param ds:
     :param kwargs:
     :return:
@@ -26,4 +27,4 @@ if __name__ == '__main__':
 
     current_ts = 'local_ts'
     logger.info(f'current ts: {current_ts}')
-    extract_feedback(None, current_ts, MockDag)
+    validate_input_dataframe(None, current_ts, MockDag)

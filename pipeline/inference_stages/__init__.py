@@ -1,0 +1,2 @@
+from inference_stages.step_1_extract_realtime_data import extract_realtime_data
+from inference_stages.step_2_make_inference import make_inference

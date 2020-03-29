@@ -4,19 +4,37 @@ import subprocess
 import tempfile
 from functools import wraps
 from subprocess import PIPE
+import os
 
 from airflow import DAG
 
 from utils import const
 from utils.misc import chdir
+from utils import config
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
+
 def get_workspace_path(execution_date, dag_id):
     logger.info(f'Execution date: {execution_date}')
     return f'gs://{const.BUCKET}/dag_workspaces/{dag_id}/{execution_date}'
+
+
+@contextlib.contextmanager
+def workspace_folder():
+    try:
+        if config.WORKSPACE:
+            logger.info('ODAHU_REUTERS_PIPELINE__WORKSPACE env var is set. '
+                        'This folder will be used to sync with remote as a local workspace. '
+                        'Folder will NOT be removed after function completed as opposed to temp folder')
+            yield config.WORKSPACE
+        else:
+            with tempfile.TemporaryDirectory() as folder:
+                yield folder
+    finally:
+        pass
 
 
 @contextlib.contextmanager
@@ -34,7 +52,7 @@ def workspace(bucket_ws_path):
     :param bucket_ws_path: remote workspace (in bucket)
     :return:
     """
-    with tempfile.TemporaryDirectory() as folder:
+    with workspace_folder() as folder:
         logger.info(f'Create working directory at {folder}')
         logger.info(f'Remote folder in storage for sync: {bucket_ws_path}')
         with chdir(folder):

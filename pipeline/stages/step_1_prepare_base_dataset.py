@@ -12,14 +12,15 @@ from contextlib import suppress
 
 from utils.workspace import inside_workspace
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
 @inside_workspace
 def prepare_base_dataset(ds, ts, dag: DAG, **kwargs):
     """
-    Extract base data set (articles in XML format) and parse it to DataFrame. Store in workspace
+    Extract base dataset
+    Prepare base dataset as DataFrame with unified schema
+    Prepare article topics as serialized list
     :param ds:
     :param kwargs:
     :return:
