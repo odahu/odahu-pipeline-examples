@@ -2,6 +2,8 @@ import logging
 
 from airflow import DAG
 
+from utils.misc import gcs_sync
+from utils import const
 from utils.workspace import inside_workspace
 
 logger = logging.getLogger(__name__)
@@ -10,12 +12,12 @@ logger = logging.getLogger(__name__)
 @inside_workspace()
 def extract_feedback(ds, ts, dag: DAG, **kwargs):
     """
-    Extract feedback data to workspace
+    Extract feedback to workspace
     :param ds:
     :param kwargs:
     :return:
     """
-    pass
+    gcs_sync(f'{const.GS_FEEDBACK_PATH}', './')
 
 
 if __name__ == '__main__':

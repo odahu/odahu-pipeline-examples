@@ -5,6 +5,7 @@ This is example of training (and re-training) dag
 from datetime import datetime
 
 from airflow import DAG
+from airflow.operators.bash_operator import BashOperator
 from airflow.operators.python_operator import PythonOperator
 from odahuflow.airflow_plugin.deployment import DeploymentOperator, DeploymentSensor
 from odahuflow.airflow_plugin.packaging import PackagingOperator, PackagingSensor
@@ -139,6 +140,12 @@ with dag:
         default_args=default_args
     )
 
+    model_validation = BashOperator(
+        task_id='model_validation',
+        bash_command='echo "evaulate model"',
+        default_args=default_args
+    )
+
     # PIPELINE
 
     extract_feedback_task >> prepare_feedback_task >> combine_datasets_task
@@ -151,4 +158,4 @@ with dag:
 
     wait_for_train >> pack >> wait_for_pack
 
-    wait_for_pack >> dep >> wait_for_dep
+    wait_for_pack >> model_validation >> dep >> wait_for_dep

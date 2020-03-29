@@ -1,13 +1,17 @@
 
 # Bucket in GCS where all data will be synced
-BUCKET = 'gke-legion-dev01-data-store'  # TODO: move to configuration
-API_HOST = 'odahu.gke-legion-dev01.ailifecycle.org'  # TODO: move to configuration
+# TODO: move to configuration
+BUCKET = 'gke-legion-dev01-data-store'
+GS_FEEDBACK_PATH = 'gs://gke-legion-dev01-data-store/model_log'
+API_HOST = 'odahu.gke-legion-dev01.ailifecycle.org'
 
 TOPICS_COL = 'topics'
 TEXT_COL = 'text'
 
 TOPICS_PICKLE_FILE = 'topics.pickle'
 DATASET_PICKLE_FILE = 'docs_df.pickle'
+FEEDBACK_DATASET_PICKLE_FILE = 'feedback_docs_df.pickle'
+COMBINED_DATASET_PICKLE_FILE = 'combined_docs_df.pickle'
 
 TRAINING_INPUT_DIR = 'input/reuters-training'
 

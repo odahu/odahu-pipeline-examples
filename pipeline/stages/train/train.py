@@ -37,12 +37,10 @@ units = int(args.units or 512)
 
 print(f'Script is launched with params: max_words={max_words}, units={units}')
 
-print('listdir')
-print(list(os.listdir()))
 
 with open('topics.pickle', 'rb') as f:
     topics: List[str] = pickle.load(f)
-with open('docs_df.pickle', 'rb') as f:
+with open('combined_docs_df.pickle', 'rb') as f:
     docs_df: pd.DataFrame = pickle.load(f)
 
 # Tokenize all reuters dataset

@@ -42,5 +42,4 @@ if __name__ == '__main__':
         dag_id = 'local_dag_inference'
 
     current_ts = 'local_ts'
-    logger.info(f'current ts: {current_ts}')
     make_inference(None, current_ts, MockDag)

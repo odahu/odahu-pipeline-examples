@@ -1,7 +1,13 @@
+import json
 import logging
+import pickle
+from typing import Dict
 
 from airflow import DAG
+import pandas as pd
 
+from utils import const
+from utils.misc import harvest_json_in_tree
 from utils.workspace import inside_workspace
 
 logging.basicConfig(level=logging.INFO)
@@ -16,7 +22,20 @@ def prepare_feedback(ds, ts, dag: DAG, **kwargs):
     :param kwargs:
     :return:
     """
-    pass
+    feedback = harvest_json_in_tree('model_log/feedback')
+
+    all_feedback= []
+    for error_file in feedback:
+        with open(error_file, 'rt') as f:
+            err: Dict = json.load(f)
+
+        all_feedback += err['payload']['json']['data']
+
+    df = pd.DataFrame(columns=['text', 'topics'], data=all_feedback)
+
+    with open(const.FEEDBACK_DATASET_PICKLE_FILE, 'wb') as f:
+        pickle.dump(df, f)
+    logger.info(f'DataFrame with feedback is saved in {const.FEEDBACK_DATASET_PICKLE_FILE}')
 
 
 if __name__ == '__main__':
