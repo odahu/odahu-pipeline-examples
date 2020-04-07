@@ -10,8 +10,11 @@ TEXT_COL = 'text'
 
 TOPICS_PICKLE_FILE = 'topics.pickle'
 DATASET_PICKLE_FILE = 'docs_df.pickle'
+DATASET_PARQUET_FILE = 'docs_df.parquet'
 FEEDBACK_DATASET_PICKLE_FILE = 'feedback_docs_df.pickle'
+FEEDBACK_DATASET_PARQUET_FILE = 'feedback_docs_df.parquet'
 COMBINED_DATASET_PICKLE_FILE = 'combined_docs_df.pickle'
+COMBINED_DATASET_PARQUET_FILE = 'combined_docs_df.parquet'
 
 TRAINING_INPUT_DIR = 'input/reuters-training'
 

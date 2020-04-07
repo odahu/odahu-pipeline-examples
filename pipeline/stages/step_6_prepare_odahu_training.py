@@ -23,8 +23,8 @@ def prepare_odahu_training(ds, ts, dag: DAG, **kwargs):
     bucket = client.get_bucket(const.BUCKET)
     blob = bucket.blob(f'{const.TRAINING_INPUT_DIR}/{const.TOPICS_PICKLE_FILE}')
     blob.upload_from_filename(const.TOPICS_PICKLE_FILE)
-    blob = bucket.blob(f'{const.TRAINING_INPUT_DIR}/{const.COMBINED_DATASET_PICKLE_FILE}')
-    blob.upload_from_filename(const.COMBINED_DATASET_PICKLE_FILE)
+    blob = bucket.blob(f'{const.TRAINING_INPUT_DIR}/{const.COMBINED_DATASET_PARQUET_FILE}')
+    blob.upload_from_filename(const.COMBINED_DATASET_PARQUET_FILE)
 
 
 if __name__ == '__main__':

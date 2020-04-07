@@ -19,17 +19,13 @@ def combine_datasets(ds, ts, dag: DAG, **kwargs):
     :param kwargs:
     :return:
     """
-    with open(const.DATASET_PICKLE_FILE, 'rb') as f:
-        base_df: pd.DataFrame = pickle.load(f)
+    base_df: pd.DataFrame = pd.read_parquet(const.DATASET_PARQUET_FILE)
+    feedback_df: pd.DataFrame = pd.read_parquet(const.FEEDBACK_DATASET_PARQUET_FILE)
 
-    with open(const.FEEDBACK_DATASET_PICKLE_FILE, 'rb') as f:
-        feedback_df: pd.DataFrame = pickle.load(f)
+    combined_df: pd.DataFrame = pd.concat([base_df, feedback_df], ignore_index=True, sort=False)
 
-    combined_df = pd.concat([base_df, feedback_df], ignore_index=True, sort=False)
-
-    with open(const.COMBINED_DATASET_PICKLE_FILE, 'wb') as f:
-        pickle.dump(combined_df, f)
-        logger.info(f'DataFrame with feedback is saved in {const.COMBINED_DATASET_PICKLE_FILE}')
+    combined_df.to_parquet(const.COMBINED_DATASET_PARQUET_FILE)
+    logger.info(f'DataFrame with feedback is saved in {const.COMBINED_DATASET_PARQUET_FILE}')
 
 
 if __name__ == '__main__':

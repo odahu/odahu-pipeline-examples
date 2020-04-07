@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 @inside_workspace()
-def prepare_base_dataset(ds, ts, dag: DAG, **kwargs):
+def prepare_base_dataset(*args, **kwargs):
     """
     Extract base dataset
     Prepare base dataset as DataFrame with unified schema
@@ -33,9 +33,9 @@ def prepare_base_dataset(ds, ts, dag: DAG, **kwargs):
     docs_df = pd.DataFrame(data=docs, columns=['text', 'topics'])
     topics = list(get_topics_from_reuters_documents(folder))
 
-    with open(const.DATASET_PICKLE_FILE, 'wb') as f:
-        pickle.dump(docs_df, f)
-        logger.info(f'DataFrame with base dataset documents serialized and stored in {const.DATASET_PICKLE_FILE}')
+    docs_df.to_parquet(const.DATASET_PARQUET_FILE)
+    logger.info(f'DataFrame with base dataset documents serialized and stored in {const.DATASET_PARQUET_FILE}')
+
     with open(const.TOPICS_PICKLE_FILE, 'wb') as f:
         pickle.dump(topics, f)
         logger.info(f'topics list serialized and stored in {const.TOPICS_PICKLE_FILE}')

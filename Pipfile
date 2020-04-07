@@ -5,12 +5,15 @@ verify_ssl = true
 
 [dev-packages]
 pytest = "*"
+mlflow = "*"
+pyarrow = "*"
 
 [packages]
 google-cloud-storage = "==1.13.2"
 pandas = "==0.24.2"
 apache-airflow = "===1.10.2"
 requests = "==2.23.0"
+odahu-flow-airflow-plugin = "*"
 
 [requires]
 python_version = "3.6"

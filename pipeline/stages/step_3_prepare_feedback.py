@@ -24,7 +24,7 @@ def prepare_feedback(ds, ts, dag: DAG, **kwargs):
     """
     feedback = harvest_json_in_tree('model_log/feedback')
 
-    all_feedback= []
+    all_feedback = []
     for error_file in feedback:
         with open(error_file, 'rt') as f:
             err: Dict = json.load(f)
@@ -33,9 +33,8 @@ def prepare_feedback(ds, ts, dag: DAG, **kwargs):
 
     df = pd.DataFrame(columns=['text', 'topics'], data=all_feedback)
 
-    with open(const.FEEDBACK_DATASET_PICKLE_FILE, 'wb') as f:
-        pickle.dump(df, f)
-    logger.info(f'DataFrame with feedback is saved in {const.FEEDBACK_DATASET_PICKLE_FILE}')
+    df.to_parquet(const.FEEDBACK_DATASET_PARQUET_FILE)
+    logger.info(f'DataFrame with feedback is saved in {const.FEEDBACK_DATASET_PARQUET_FILE}')
 
 
 if __name__ == '__main__':

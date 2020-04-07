@@ -20,15 +20,14 @@ def validate_input_dataframe(ds, ts, dag: DAG, **kwargs):
     :param kwargs:
     :return:
     """
-    with open(const.COMBINED_DATASET_PICKLE_FILE, 'rb') as f:
-        df: pd.DataFrame = pickle.load(f)
+
+    df: pd.DataFrame = pd.read_parquet(const.COMBINED_DATASET_PARQUET_FILE)
 
     # validate and fix dataframe (remove empty where text is empty)
     df['text'].replace('', np.nan, inplace=True)
     df.dropna(subset=['text'], inplace=True)
 
-    with open(const.COMBINED_DATASET_PICKLE_FILE, 'wb') as f:
-        pickle.dump(df, f)
+    df.to_parquet(const.COMBINED_DATASET_PARQUET_FILE)
 
 
 if __name__ == '__main__':

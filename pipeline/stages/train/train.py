@@ -40,8 +40,8 @@ print(f'Script is launched with params: max_words={max_words}, units={units}')
 
 with open('topics.pickle', 'rb') as f:
     topics: List[str] = pickle.load(f)
-with open('combined_docs_df.pickle', 'rb') as f:
-    docs_df: pd.DataFrame = pickle.load(f)
+
+docs_df: pd.DataFrame = pd.read_parquet('combined_docs_df.parquet')
 
 # Tokenize all reuters dataset
 tokenizer = Tokenizer(num_words=max_words)
@@ -94,11 +94,13 @@ with mlflow.start_run():
         'keras_model': KERAS_MODEL_FILE,
     }
 
-    conda_env = 'conda.yaml'
+    conda_env = os.path.join(os.path.dirname(__file__), 'conda.yaml')
+
+    code_path = os.path.join(os.path.dirname(__file__), 'src')
 
     mlflow.pyfunc.log_model(
         'model', artifacts=artifacts, conda_env=conda_env,
-        python_model=ModelWrapper(tokenizer, topics_encoder), code_path=['src']
+        python_model=ModelWrapper(tokenizer, topics_encoder), code_path=[code_path]
     )
 
     # print some metrics
